@@ -24,8 +24,14 @@ $ ->
       console.log "running ...."
     currentPanelIdx: 0
     getCurrentPanel: ->
-      console.log "getting current panel"
       @coordinates[@currentPanelIdx]
+      
+    getNextPanel: ->
+      @currentPanelIdx++ if @currentPanelIdx < @coordinates.length-1
+      @getCurrentPanel()
+    getPreviousPanel: ->
+      @currentPanelIdx-- if @currentPanelIdx > 0
+      @getCurrentPanel()
   
   class PageManagerOld
     instance = null
@@ -82,12 +88,24 @@ $ ->
     writer: "A Writer",
     illustrator: "An Illustrator",
     pages: [
-      new Page("https://b672919e56d941a2e7f4d07f63d3effaa6c3136c.googledrive.com/host/0B55OYxnBow_9bElhR3lSNVBGQXM/wearbg.jpg", [new Coordinate "10,10,10,10"])
+      new Page("https://cde6dc9e64e2615158334e81fa60a42a7025dcd4.googledrive.com/host/0B55OYxnBow_9ZE1FRnJCdXNheXc/bizzbuzztest1.png", [
+        new Coordinate "244,4,256,88,-4,38,24,10,98,6"
+        new Coordinate "268,176,4,174,10,48,256,110,258,114"
+        new Coordinate "8,192,116,188,156,300,-6,282"
+        new Coordinate "254,202,274,316,168,310,144,184"])
+        
+      new Page("https://cde6dc9e64e2615158334e81fa60a42a7025dcd4.googledrive.com/host/0B55OYxnBow_9ZE1FRnJCdXNheXc/bizzbuzztest2.jpg", [
+        new Coordinate "10,10,10,10"])
+        
+      new Page("https://cde6dc9e64e2615158334e81fa60a42a7025dcd4.googledrive.com/host/0B55OYxnBow_9ZE1FRnJCdXNheXc/bizzbuzztest3.jpg", [
+        new Coordinate "10,10,10,10"])
     ]
   
   bm = new BookManager(bookObj)
   console.log bm.getMaxPage()
   console.log bm.getCurrentPage().getCurrentPanel().getCoordinates()
+
+  
   # ph = ProjectorHelper.getInstance(1,1,1,1,[1,2,3,4])
   
   $("#info").append "mooo"
