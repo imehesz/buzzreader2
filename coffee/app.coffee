@@ -18,6 +18,31 @@ $ ->
       x2 = coords[2]
       y2 = coords[3]
       return [x1,y1,x2,y1,x2,y2,x1,y2]
+    
+    getXs: ->
+      coords = @getCoordinates()
+      xs = []
+      xs.push c for c in coords by 2
+      xs
+      
+    getYs: ->
+      coords = @getCoordinates()
+      ys = []
+      for c,i in coords by 2
+        ys.push coords[i+1]
+      ys
+      
+    getMaxY: ->
+      Math.max.apply Math, @getYs()
+      
+    getMinY: ->
+      Math.min.apply Math, @getYs()
+    
+    getMaxX: ->
+      Math.max.apply Math, @getXs()
+      
+    getMinX: ->
+      Math.min.apply Math, @getXs()
   
   class Page
     constructor: (@url, @coordinates) ->
@@ -51,13 +76,21 @@ $ ->
   class BookManager
     constructor: (@bookObj) ->
       console.log "init PM"
-      @pages = @bookObj.pages
+      @setBook(@bookObj)
     setBook: (@bookObj) ->
+      @pages = @bookObj.pages
+      @currentPageIdx = 0
     currentPageIdx: 0,
     getMaxPage: ->
       @bookObj.pages.length
     getCurrentPage: ->
       @pages[@currentPageIdx]
+    getNextPage: ->
+      @currentPageIdx++ if @currentPageIdx < @getMaxPage()-1
+      @getCurrentPage()
+    getPreviousPage: ->
+      @currentPageIdx-- if @currentPageIdx > 0
+      @getCurrentPage()
       
   
   class ProjectorHelper
@@ -95,7 +128,7 @@ $ ->
         new Coordinate "254,202,274,316,168,310,144,184"])
         
       new Page("https://cde6dc9e64e2615158334e81fa60a42a7025dcd4.googledrive.com/host/0B55OYxnBow_9ZE1FRnJCdXNheXc/bizzbuzztest2.jpg", [
-        new Coordinate "10,10,10,10"])
+        new Coordinate "11,12,13,14"])
         
       new Page("https://cde6dc9e64e2615158334e81fa60a42a7025dcd4.googledrive.com/host/0B55OYxnBow_9ZE1FRnJCdXNheXc/bizzbuzztest3.jpg", [
         new Coordinate "10,10,10,10"])
@@ -104,6 +137,11 @@ $ ->
   bm = new BookManager(bookObj)
   console.log bm.getMaxPage()
   console.log bm.getCurrentPage().getCurrentPanel().getCoordinates()
+  console.log bm.getCurrentPage().getCurrentPanel().getMaxX()
+  console.log bm.getCurrentPage().getCurrentPanel().getMinX()
+  console.log bm.getCurrentPage().getCurrentPanel().getMaxY()
+  console.log bm.getCurrentPage().getCurrentPanel().getMinY()
+
 
   
   # ph = ProjectorHelper.getInstance(1,1,1,1,[1,2,3,4])
