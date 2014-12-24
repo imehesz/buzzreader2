@@ -54,29 +54,21 @@ $ ->
     getNextPanel: ->
       @currentPanelIdx++ if @currentPanelIdx < @coordinates.length-1
       @getCurrentPanel()
+      
     getPreviousPanel: ->
       @currentPanelIdx-- if @currentPanelIdx > 0
       @getCurrentPanel()
-  
-  class PageManagerOld
-    instance = null
-    currentPage = 0
-    maxPage = 0
-  
-    @init = () ->
-      console.log "init PM..."
-  
-    @getInstance = () ->
-      instance ?= @init()
     
-    @setPage = (pageObj) ->
-      maxPage = pageObj.pages.length or 0
-      console.log "maxPage", maxPage
-
+    isLastPanel: -> @currentPanelIdx == @coordinates.length-1
+  
   class BookManager
     constructor: (@bookObj) ->
-      console.log "init PM"
       @setBook(@bookObj)
+    PAGE_VIEW: 1
+    PANEL_VIEW: 2
+    viewLevel: 2
+    getViewLevel: -> @viewLevel
+    setViewLevel: (@viewLevel) ->
     setBook: (@bookObj) ->
       @pages = @bookObj.pages
       @currentPageIdx = 0
@@ -92,8 +84,52 @@ $ ->
       @currentPageIdx-- if @currentPageIdx > 0
       @getCurrentPage()
       
+    isLastPage: -> @currentPageIdx == @getMaxPage()-1
+      
   
   class ProjectorHelper
+    constructor: (@projectorId, @bookManager) ->
+      @setPage @bookManager.getCurrentPage()
+      @setPanel @getPage().getCurrentPanel()
+    setPage: (@page) ->
+    setPanel: (@panel)->
+    getPage: -> @page
+    getPanel: -> @panel
+    getWidth: -> document.getElementById(@projectorId).offsetWidth
+    getHeight: -> document.getElementById(@projectorId).offsetHeight
+    project: () ->
+      console.log "Projector With", @getWidth()
+      console.log "Projector Height", @getHeight()
+      console.log "View Mode", @bookManager.getViewLevel()
+      console.log "Page", @getPage()
+      console.log "Panel", @getPanel().getCoordinates()
+      
+    next: ->
+      loadNextPage = false
+      if @bookManager.getViewLevel() == @bookManager.PANEL_VIEW
+        # if last panel, we must get the next page
+        if(@getPage().isLastPanel())
+          console.log "LAST PANEL, LOAD NEXT PAGE"
+          loadNextPage = true
+        else
+          console.log "GET NEXT PANEL"
+          @setPanel @getPage().getNextPanel()
+        
+      if loadNextPage
+        console.log "NEXT PAGE"
+        if @bookManager.isLastPage()
+          console.log "LAST PAGE!!!! OVER!"
+        else
+          @setPage @bookManager.getNextPage()
+        
+    prev: ->
+      if @bookManager.getViewLevel() == @bookManager.PANEL_VIEW
+        console.log "previous panel"
+      else
+        console.log "previous page"
+      
+  
+  class ProjectorHelper2
     instance = null
     projectorWidth = 0
     projectorHeight = 0
@@ -135,14 +171,18 @@ $ ->
     ]
   
   bm = new BookManager(bookObj)
-  console.log bm.getMaxPage()
-  console.log bm.getCurrentPage().getCurrentPanel().getCoordinates()
-  console.log bm.getCurrentPage().getCurrentPanel().getMaxX()
-  console.log bm.getCurrentPage().getCurrentPanel().getMinX()
-  console.log bm.getCurrentPage().getCurrentPanel().getMaxY()
-  console.log bm.getCurrentPage().getCurrentPanel().getMinY()
+  #console.log bm.getMaxPage()
+  #console.log bm.getCurrentPage().getCurrentPanel().getCoordinates()
 
 
+  ph = new ProjectorHelper "projector1", bm
+  ph.project()
+  
+  document.getElementById("back").onclick = ->
+    ph.prev()
+  
+  document.getElementById("next").onclick = ->
+    ph.next()
   
   # ph = ProjectorHelper.getInstance(1,1,1,1,[1,2,3,4])
   
@@ -153,4 +193,3 @@ $ ->
     Page: Page
     BookManager: BookManager
     ProjectorHelper: ProjectorHelper
-
