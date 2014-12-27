@@ -188,6 +188,23 @@ $ ->
   
   $("#info").append "mooo"
   
+  # canvas cutout
+  c = $("#projector-overlay")[0]
+  ctx = c.getContext "2d"
+  
+  ctx.fillStyle = "black"
+  ctx.fillRect(0, 0, c.width, c.height);
+  
+  ctx.fillStyle = "rgba(0,0,0,1)"
+  ctx.globalCompositeOperation = "destination-out"
+  
+  ctx.beginPath()
+  ctx.moveTo c.width/2,0
+  ctx.lineTo c.width,c.height/2
+  ctx.lineTo c.width/2,c.height
+  ctx.lineTo 0,c.height/2
+  ctx.fill()
+  
   window.BizzBuzzApp =
     Coordinate: Coordinate
     Page: Page
