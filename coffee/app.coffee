@@ -60,6 +60,7 @@ $ ->
       @getCurrentPanel()
     
     isLastPanel: -> @currentPanelIdx == @coordinates.length-1
+    isFirstPanel: -> @currentPanelIdx == 0
   
   class BookManager
     constructor: (@bookObj) ->
@@ -76,6 +77,16 @@ $ ->
     getMaxPage: ->
       @bookObj.pages.length
     getCurrentPage: ->
+      console.log "Loading image: " + @pages[@currentPageIdx].url
+      t = @
+      image = new Image()
+      image.src = @pages[@currentPageIdx].url
+      image.onload = (e) ->
+        console.log "EEEEEEEEE", e
+        
+        t.pages[t.currentPageIdx].width = this.width
+        t.pages[t.currentPageIdx].height = this.height
+        
       @pages[@currentPageIdx]
     getNextPage: ->
       @currentPageIdx++ if @currentPageIdx < @getMaxPage()-1
@@ -85,6 +96,7 @@ $ ->
       @getCurrentPage()
       
     isLastPage: -> @currentPageIdx == @getMaxPage()-1
+    isFirstPage: -> @currentPageIdx == 0
       
   
   class ProjectorHelper
@@ -102,8 +114,11 @@ $ ->
       console.log "Projector Height", @getHeight()
       console.log "View Mode", @bookManager.getViewLevel()
       console.log "Page", @getPage()
-      console.log "Panel", @getPanel().getCoordinates()
       
+      if @bookManager.getViewLevel() == @bookManager.PANEL_VIEW
+        console.log "Projecting Panel Panel -> ", @getPanel().getCoordinates()
+      else
+        console.log "Projecting Page -> ", "0,0," + @page.width + "," + @page.height
     next: ->
       loadNextPage = false
       if @bookManager.getViewLevel() == @bookManager.PANEL_VIEW
@@ -114,6 +129,8 @@ $ ->
         else
           console.log "GET NEXT PANEL"
           @setPanel @getPage().getNextPanel()
+      else
+        loadNextPage = true
         
       if loadNextPage
         console.log "NEXT PAGE"
@@ -123,10 +140,24 @@ $ ->
           @setPage @bookManager.getNextPage()
         
     prev: ->
+      loadPreviousPage = false
       if @bookManager.getViewLevel() == @bookManager.PANEL_VIEW
-        console.log "previous panel"
+        # if first panel we must get the previous page
+        if @getPage().isFirstPanel()
+          console.log "FIRST PANEL, LOAD PREVIOUS PAGE"
+          loadPreviousPage = true
+        else
+          console.log "GET PREVIOUS PANEL"
+          @setPanel @getPage().getPreviousPanel()
       else
-        console.log "previous page"
+        loadPreviousPage = true
+
+      if loadPreviousPage
+        console.log "PREVIOUS PAGE"
+        if @bookManager.isFirstPage()
+          console.log "FIRST PAGE!!"
+        else
+          @setPage @bookManager.getPreviousPage()
       
   
   class ProjectorHelper2
