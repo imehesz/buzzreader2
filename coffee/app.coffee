@@ -49,6 +49,7 @@ $ ->
       console.log "running ...."
     currentPanelIdx: 0
     setPanelIndex: (idx) -> @.currentPanelIdx=idx
+    getPanelCount: -> @coordinates.length
     getCurrentPanel: ->
       @coordinates[@currentPanelIdx]
       
@@ -77,28 +78,17 @@ $ ->
     currentPageIdx: 0,
     getMaxPage: ->
       @bookObj.pages.length
-    getCurrentPage: (cb, scope, forcedPanelIdx) ->
+    getCurrentPage: (cb, scope) ->
       console.log "Loading image: " + @pages[@currentPageIdx].url
-      t = @
+      page = @pages[@currentPageIdx]
       image = new Image()
       image.src = @pages[@currentPageIdx].url
       image.onload = (e) ->
-        console.log "EEEEEEEEE", e
-        
-        page = t.pages[t.currentPageIdx]
-        
         page.width = this.width
         page.height = this.height
-        
-        page.setPanelIndex(forcedPanelIdx) unless typeof forcedPanelIdx is "undefined"
-        
-        if typeof forcedPanelIdx != "undefined"
-          console.log "setting PANEL INDEX TO: ", forcedPanelIdx
-          page.currentPanelIdx = forcedPanelIdx
-        
         cb.apply(scope) unless typeof cb != "function"
         
-      @pages[@currentPageIdx]
+      page
     getNextPage: (cb, scope) ->
       @currentPageIdx++ if @currentPageIdx < @getMaxPage()-1
       @getCurrentPage(cb, scope, 0)
@@ -121,10 +111,10 @@ $ ->
     getWidth: -> document.getElementById(@projectorId).offsetWidth
     getHeight: -> document.getElementById(@projectorId).offsetHeight
     project: () ->
-      console.log "Projector With", @getWidth()
-      console.log "Projector Height", @getHeight()
-      console.log "View Mode", @bookManager.getViewLevel()
-      console.log "Page", @getPage()
+      # console.log "Projector With", @getWidth()
+      # console.log "Projector Height", @getHeight()
+      # console.log "View Mode", @bookManager.getViewLevel()
+      # console.log "Page", @getPage()
       
       if @bookManager.getViewLevel() == @bookManager.PANEL_VIEW
         console.log "Projecting Panel Panel -> ", @getPanel().getCoordinates()
@@ -140,7 +130,7 @@ $ ->
         else
           console.log "GET NEXT PANEL"
           @setPanel @getPage().getNextPanel()
-          @.project()
+          @project()
       else
         loadNextPage = true
         
@@ -149,7 +139,11 @@ $ ->
         if @bookManager.isLastPage()
           console.log "LAST PAGE!!!! OVER!"
         else
-          @setPage @bookManager.getNextPage(@project, @)
+          @setPage @bookManager.getNextPage(->
+            @getPage().setPanelIndex 0
+            @setPanel @getPage().getCurrentPanel()
+            @project()
+          ,@)
         
     prev: ->
       loadPreviousPage = false
@@ -170,7 +164,11 @@ $ ->
         if @bookManager.isFirstPage()
           console.log "FIRST PAGE!!"
         else
-          @setPage @bookManager.getPreviousPage(@project, @)
+          @setPage @bookManager.getPreviousPage(->
+            @getPage().setPanelIndex @getPage().getPanelCount()-1
+            @setPanel @getPage().getCurrentPanel()
+            @project()
+          ,@)
       
   
   class ProjectorHelper2
