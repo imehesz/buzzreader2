@@ -48,6 +48,7 @@ $ ->
     constructor: (@url, @coordinates) ->
       console.log "running ...."
     currentPanelIdx: 0
+    setPanelIndex: (idx) -> @.currentPanelIdx=idx
     getCurrentPanel: ->
       @coordinates[@currentPanelIdx]
       
@@ -76,7 +77,7 @@ $ ->
     currentPageIdx: 0,
     getMaxPage: ->
       @bookObj.pages.length
-    getCurrentPage: ->
+    getCurrentPage: (cb, scope, forcedPanelIdx) ->
       console.log "Loading image: " + @pages[@currentPageIdx].url
       t = @
       image = new Image()
@@ -84,16 +85,26 @@ $ ->
       image.onload = (e) ->
         console.log "EEEEEEEEE", e
         
-        t.pages[t.currentPageIdx].width = this.width
-        t.pages[t.currentPageIdx].height = this.height
+        page = t.pages[t.currentPageIdx]
+        
+        page.width = this.width
+        page.height = this.height
+        
+        page.setPanelIndex(forcedPanelIdx) unless typeof forcedPanelIdx is "undefined"
+        
+        if typeof forcedPanelIdx != "undefined"
+          console.log "setting PANEL INDEX TO: ", forcedPanelIdx
+          page.currentPanelIdx = forcedPanelIdx
+        
+        cb.apply(scope) unless typeof cb != "function"
         
       @pages[@currentPageIdx]
-    getNextPage: ->
+    getNextPage: (cb, scope) ->
       @currentPageIdx++ if @currentPageIdx < @getMaxPage()-1
-      @getCurrentPage()
-    getPreviousPage: ->
+      @getCurrentPage(cb, scope, 0)
+    getPreviousPage: (cb, scope) ->
       @currentPageIdx-- if @currentPageIdx > 0
-      @getCurrentPage()
+      @getCurrentPage(cb, scope, @.pages[@.currentPageIdx].coordinates.length)
       
     isLastPage: -> @currentPageIdx == @getMaxPage()-1
     isFirstPage: -> @currentPageIdx == 0
@@ -129,6 +140,7 @@ $ ->
         else
           console.log "GET NEXT PANEL"
           @setPanel @getPage().getNextPanel()
+          @.project()
       else
         loadNextPage = true
         
@@ -137,7 +149,7 @@ $ ->
         if @bookManager.isLastPage()
           console.log "LAST PAGE!!!! OVER!"
         else
-          @setPage @bookManager.getNextPage()
+          @setPage @bookManager.getNextPage(@project, @)
         
     prev: ->
       loadPreviousPage = false
@@ -149,6 +161,7 @@ $ ->
         else
           console.log "GET PREVIOUS PANEL"
           @setPanel @getPage().getPreviousPanel()
+          @project()
       else
         loadPreviousPage = true
 
@@ -157,7 +170,7 @@ $ ->
         if @bookManager.isFirstPage()
           console.log "FIRST PAGE!!"
         else
-          @setPage @bookManager.getPreviousPage()
+          @setPage @bookManager.getPreviousPage(@project, @)
       
   
   class ProjectorHelper2
@@ -207,13 +220,11 @@ $ ->
 
 
   ph = new ProjectorHelper "projector1", bm
-  ph.project()
   
-  document.getElementById("back").onclick = ->
-    ph.prev()
+  bm.getCurrentPage ph.project, ph
   
-  document.getElementById("next").onclick = ->
-    ph.next()
+  document.getElementById("back").onclick = -> ph.prev()
+  document.getElementById("next").onclick = -> ph.next()
   
   # ph = ProjectorHelper.getInstance(1,1,1,1,[1,2,3,4])
   
