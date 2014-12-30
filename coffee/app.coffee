@@ -48,6 +48,7 @@ $ ->
     constructor: (@url, @coordinates) ->
       console.log "running ...."
     currentPanelIdx: 0
+    getUrl: -> @url
     setPanelIndex: (idx) -> @.currentPanelIdx=idx
     getPanelCount: -> @coordinates.length
     getCurrentPanel: ->
@@ -105,7 +106,9 @@ $ ->
       @setPage @bookManager.getCurrentPage()
       @setPanel @getPage().getCurrentPanel()
     setPage: (@page) ->
-    setPanel: (@panel)->
+      proj = document.getElementById @projectorId
+      proj.style.backgroundImage = "url(" + @page.getUrl() + ")";
+    setPanel: (@panel) ->
     getPage: -> @page
     getPanel: -> @panel
     getWidth: -> document.getElementById(@projectorId).offsetWidth
