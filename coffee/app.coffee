@@ -113,6 +113,20 @@ $ ->
     getPanel: -> @panel
     getWidth: -> document.getElementById(@projectorId).offsetWidth
     getHeight: -> document.getElementById(@projectorId).offsetHeight
+    render: (coords) ->
+      console.log "RENDERING", coords
+      
+    calculateProjectorCoordinates: (coords) ->
+      t = @
+      projCoords = []
+      
+      coords.forEach (el) ->
+        newEl = el
+        newEl = 0 if el < 0
+        projCoords.push newEl
+      
+      projCoords
+      
     project: () ->
       # console.log "Projector With", @getWidth()
       # console.log "Projector Height", @getHeight()
@@ -120,9 +134,9 @@ $ ->
       # console.log "Page", @getPage()
       
       if @bookManager.getViewLevel() == @bookManager.PANEL_VIEW
-        console.log "Projecting Panel Panel -> ", @getPanel().getCoordinates()
+        @render(@calculateProjectorCoordinates @getPanel().getCoordinates())
       else
-        console.log "Projecting Page -> ", "0,0," + @page.width + "," + @page.height
+        @render(@calculateProjectorCoordinates new Coordinate("0,0," + @page.width + "," + @page.height).getCoordinates())
     next: ->
       loadNextPage = false
       if @bookManager.getViewLevel() == @bookManager.PANEL_VIEW
@@ -173,25 +187,6 @@ $ ->
             @project()
           ,@)
       
-  
-  class ProjectorHelper2
-    instance = null
-    projectorWidth = 0
-    projectorHeight = 0
-    pageWidth = 0
-    pageHeight = 0
-    pageCoordinates = []
-    projectorCoordinates = []
-  
-    @init = (projectorWidth, projectorHeight, pageWidth, pageHeight, pageCoordinates) ->
-      console.log "init ProjectorHelper"
-  
-    @getInstance = (projectorWidth, projectorHeight, pageWidth, pageHeight, pageCoordinates) ->
-      return instance unless instance is null
-      instance = @init(projectorWidth, projectorHeight, pageWidth, pageHeight, pageCoordinates)
-  
-    @getProjectorCoordinates: ->
-      return projectorCoordinates unless projectorCoordinates.length is 0
   
   #c = new Coordinate("1,2,3,4").getCoordinates()
   #console.log c
