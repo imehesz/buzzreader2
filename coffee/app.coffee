@@ -105,6 +105,8 @@ $ ->
     constructor: (@projectorId, @bookManager) ->
       @setPage @bookManager.getCurrentPage()
       @setPanel @getPage().getCurrentPanel()
+      @c = null
+      @ctx = null
     setPage: (@page) ->
       proj = document.getElementById @projectorId
       proj.style.backgroundImage = "url(" + @page.getUrl() + ")";
@@ -114,7 +116,43 @@ $ ->
     getWidth: -> document.getElementById(@projectorId).offsetWidth
     getHeight: -> document.getElementById(@projectorId).offsetHeight
     render: (coords) ->
-      console.log "RENDERING", coords
+      
+      @c = $("#projector-overlay")[0] if @c is null
+      @ctx = @c.getContext "2d" if @ctx is null
+      
+      @ctx.clearRect(0,0,@c.width,@c.height)
+      
+      
+      @ctx.fillStyle = "black"
+      @ctx.fillRect 0, 0, @c.width, @c.height
+  
+      @ctx.fillStyle = "rgba(0,0,0,1)"
+      @ctx.globalCompositeOperation = "destination-out"
+  
+      @ctx.beginPath()
+      #@ctx.moveTo 0,0
+      
+      # test for rhombus dimond in the middle of the projector
+      #@ctx.moveTo @c.width/2,0
+      #@ctx.lineTo @c.width,@c.height/2
+      #@ctx.lineTo @c.width/2,@c.height
+      #@ctx.lineTo 0,@c.height/2
+      
+      tmpCoords = new Coordinate coords.join()
+      tmpXs = tmpCoords.getXs()
+      tmpYs = tmpCoords.getYs()
+      
+      for x, i in tmpXs
+        y = tmpYs[i]
+        console.log x,y
+        @ctx.moveTo x,y if i is 0
+        @ctx.lineTo x,y if i > 0
+      
+      @ctx.fill()
+      
+      @ctx.globalCompositeOperation = "source-over";
+      
+      console.log "RENDERING", coords, tmpCoords
       
     calculateProjectorCoordinates: (coords) ->
       t = @
@@ -197,6 +235,17 @@ $ ->
     writer: "A Writer",
     illustrator: "An Illustrator",
     pages: [
+      new Page("https://5590b350b8e8612362e86b9426c7815b2a13a98a.googledrive.com/host/0B55OYxnBow_9UG5HbW1fWGhkR2c/bizzbuzzpaneltest.png",[
+        new Coordinate "10,9,114,118"
+        new Coordinate "12,125,114,175"
+        new Coordinate "130,9,236,175"
+        new Coordinate "12,188,236,251"
+        new Coordinate "20,284,10,304,10,334,25,354,65,371,100,355,121,326,112,281,81,261,29,266,22,277,22,277,14,287,14,287,26,273"
+        new Coordinate "172,284,140,305,131,345,140,360,149,365,142,385,146,399,194,400,213,375,202,345,230,328,238,296,211,267,173,276"
+        new Coordinate "9,427,13,481,234,486,230,485"
+        new Coordinate "13,406,230,474,229,407"
+      ])
+      
       new Page("https://cde6dc9e64e2615158334e81fa60a42a7025dcd4.googledrive.com/host/0B55OYxnBow_9ZE1FRnJCdXNheXc/bizzbuzztest1.png", [
         new Coordinate "244,4,256,88,-4,38,24,10,98,6"
         new Coordinate "268,176,4,174,10,48,256,110,258,114"
@@ -211,6 +260,8 @@ $ ->
     ]
   
   bm = new BookManager(bookObj)
+  #bm.setViewLevel bm.PAGE_VIEW
+  
   #console.log bm.getMaxPage()
   #console.log bm.getCurrentPage().getCurrentPanel().getCoordinates()
 
@@ -225,24 +276,7 @@ $ ->
   # ph = ProjectorHelper.getInstance(1,1,1,1,[1,2,3,4])
   
   $("#info").append "mooo"
-  
-  # canvas cutout
-  c = $("#projector-overlay")[0]
-  ctx = c.getContext "2d"
-  
-  ctx.fillStyle = "black"
-  ctx.fillRect(0, 0, c.width, c.height);
-  
-  ctx.fillStyle = "rgba(0,0,0,1)"
-  ctx.globalCompositeOperation = "destination-out"
-  
-  ctx.beginPath()
-  ctx.moveTo c.width/2,0
-  ctx.lineTo c.width,c.height/2
-  ctx.lineTo c.width/2,c.height
-  ctx.lineTo 0,c.height/2
-  ctx.fill()
-  
+
   window.BizzBuzzApp =
     Coordinate: Coordinate
     Page: Page
