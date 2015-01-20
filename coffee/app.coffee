@@ -1,16 +1,34 @@
 window.BizzBuzzApp = exports? and exports or window.BizzBuzzApp = {}
 
 $ ->
+  # Coordinate - handles all the coordinates related tasks
   class Coordinate
     constructor: (@coordStr) ->
       @coordinates = null
     
+    # returns coordinates, also calls 2 point handler if needed
+    # @return Array of Numbers
     getCoordinates: ->
       return @coordinates unless @coordinates is null
       tmpCoords = @coordStr.split(",")
       return @coordinates = tmpCoords if tmpCoords.length > 4
       @coordinates = @handleTwoPointers(tmpCoords)
   
+    # converts coordinates array to array of objects
+    # return Array of Objects
+    getCoordinateObjects: ->
+      xs = @getXs()
+      ys = @getYs()
+      retArr = []
+      
+      for x, i in xs
+        retArr.push x:x, y:ys[i]
+
+      retArr        
+      
+      
+    # handles 2 point coordinates (old school BizzBuzz slicing)
+    # @return Array of Numbers (4 point coordinates)
     handleTwoPointers: (coords) ->
       return coords unless coords.length is 4
       x1 = coords[0]
@@ -19,28 +37,40 @@ $ ->
       y2 = coords[3]
       return [x1,y1,x2,y1,x2,y2,x1,y2]
     
+    # gets all the X coordinates
+    # @return Array of Numbers
     getXs: ->
       coords = @getCoordinates()
       xs = []
       xs.push c for c in coords by 2
       xs
       
+    # gets all the Y coordinates
+    # @return Array of Numbers
     getYs: ->
       coords = @getCoordinates()
       ys = []
       for c,i in coords by 2
         ys.push coords[i+1]
       ys
-      
+    
+    # gets the max value from the Y coordinates
+    # @return Number
     getMaxY: ->
       Math.max.apply Math, @getYs()
-      
+    
+    # gets the min value from the Y coordinates
+    # @return Number
     getMinY: ->
       Math.min.apply Math, @getYs()
     
+    # gets the max value from the X coordinates 
+    # @return Number
     getMaxX: ->
       Math.max.apply Math, @getXs()
-      
+
+    # gets the min value from the X coordinates 
+    # @return Number      
     getMinX: ->
       Math.min.apply Math, @getXs()
   
@@ -130,7 +160,6 @@ $ ->
       @ctx.globalCompositeOperation = "destination-out"
   
       @ctx.beginPath()
-      #@ctx.moveTo 0,0
       
       # test for rhombus dimond in the middle of the projector
       #@ctx.moveTo @c.width/2,0
@@ -138,30 +167,29 @@ $ ->
       #@ctx.lineTo @c.width/2,@c.height
       #@ctx.lineTo 0,@c.height/2
       
-      tmpCoords = new Coordinate coords.join()
-      tmpXs = tmpCoords.getXs()
-      tmpYs = tmpCoords.getYs()
-      
-      for x, i in tmpXs
-        y = tmpYs[i]
-        console.log x,y
-        @ctx.moveTo x,y if i is 0
-        @ctx.lineTo x,y if i > 0
+      for coord, i in coords
+        @ctx.moveTo coord.x,coord.y if i is 0
+        @ctx.lineTo coord.x,coord.y if i > 0
       
       @ctx.fill()
       
       @ctx.globalCompositeOperation = "source-over";
       
-      console.log "RENDERING", coords, tmpCoords
+      console.log "RENDERING", coords
       
     calculateProjectorCoordinates: (coords) ->
       t = @
+      console.log("HEYOOOO",@page.width,@page.height)
       projCoords = []
       
-      coords.forEach (el) ->
-        newEl = el
-        newEl = 0 if el < 0
-        projCoords.push newEl
+      coords.forEach (coord) ->
+        tmpX = coord.x
+        tmpY = coord.y
+        
+        tmpX = 0 if tmpX < 0
+        tmpX = t.page.width if tmpX > t.page.width
+        
+        projCoords.push x:tmpX,y:tmpY
       
       projCoords
       
@@ -172,9 +200,9 @@ $ ->
       # console.log "Page", @getPage()
       
       if @bookManager.getViewLevel() == @bookManager.PANEL_VIEW
-        @render(@calculateProjectorCoordinates @getPanel().getCoordinates())
+        @render(@calculateProjectorCoordinates @getPanel().getCoordinateObjects())
       else
-        @render(@calculateProjectorCoordinates new Coordinate("0,0," + @page.width + "," + @page.height).getCoordinates())
+        @render(@calculateProjectorCoordinates new Coordinate("0,0," + @page.width + "," + @page.height).getCoordinateObjects())
     next: ->
       loadNextPage = false
       if @bookManager.getViewLevel() == @bookManager.PANEL_VIEW
