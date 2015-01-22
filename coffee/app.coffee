@@ -137,6 +137,8 @@ $ ->
       @setPanel @getPage().getCurrentPanel()
       @c = null
       @ctx = null
+      @width = @getWidth()
+      @height = @getHeight()
     setPage: (@page) ->
       proj = document.getElementById @projectorId
       proj.style.backgroundImage = "url(" + @page.getUrl() + ")";
@@ -181,16 +183,33 @@ $ ->
       t = @
       console.log("HEYOOOO",@page.width,@page.height)
       projCoords = []
+      pageWidth = @page.width
+      pageHeight = @page.height
+      projectorWidth = @width
+      projectorHeight = @height
+      
+      widthZoom = projectorWidth/pageWidth
+      heightZoom = projectorHeight/pageHeight
+      zoomer = widthZoom
       
       coords.forEach (coord) ->
         tmpX = coord.x
         tmpY = coord.y
         
         tmpX = 0 if tmpX < 0
-        tmpX = t.page.width if tmpX > t.page.width
+        tmpX = pageWidth if tmpX > pageWidth
         
-        projCoords.push x:tmpX,y:tmpY
-      
+        tmpY = 0 if tmpY < 0
+        tmpY = pageHeight if tmpY > pageHeight
+        
+        #if tmpY*widthZoom > projectorHeight
+        #  zoomer = heightZoom
+        
+        tmpX *= zoomer
+        tmpY *= zoomer
+        
+        projCoords.push x:Math.floor(tmpX),y:Math.floor(tmpY)
+        #projCoords.push x:Math.floor(coord.x),y:Math.floor(coord.y)
       projCoords
       
     project: () ->
