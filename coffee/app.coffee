@@ -182,15 +182,26 @@ $ ->
     calculateProjectorCoordinates: (coords) ->
       t = @
       console.log("HEYOOOO",@page.width,@page.height)
+      projCoordObjs = []
       projCoords = []
       pageWidth = @page.width
       pageHeight = @page.height
+      
+      panelWidth = @panel.getMaxX() - @panel.getMinX()
+      panelHeight = @panel.getMaxY() - @panel.getMinY()
+      
+      isLandscape = panelWidth > panelHeight
+      isPortrait = !isLandscape
+      
       projectorWidth = @width
       projectorHeight = @height
       
-      widthZoom = projectorWidth/pageWidth
-      heightZoom = projectorHeight/pageHeight
+      widthZoom = projectorWidth/panelWidth
+      heightZoom = projectorHeight/panelHeight
       zoomer = widthZoom
+      
+      xCorrection = @panel.getMinX()*zoomer
+      yCorrection = @panel.getMinY()*zoomer
       
       coords.forEach (coord) ->
         tmpX = coord.x
@@ -202,14 +213,22 @@ $ ->
         tmpY = 0 if tmpY < 0
         tmpY = pageHeight if tmpY > pageHeight
         
-        #if tmpY*widthZoom > projectorHeight
-        #  zoomer = heightZoom
+        if isPortrait
+          zoomer = heightZoom
+          xCorrection = t.panel.getMinX()*zoomer
+          yCorrection = t.panel.getMinY()*zoomer
         
         tmpX *= zoomer
         tmpY *= zoomer
         
-        projCoords.push x:Math.floor(tmpX),y:Math.floor(tmpY)
+        projCoords.push tmpX
+        projCoords.push tmpY
+        
+        projCoords.push x:(Math.floor(tmpX)-xCorrection),y:(Math.floor(tmpY)-yCorrection)
         #projCoords.push x:Math.floor(coord.x),y:Math.floor(coord.y)
+        
+      
+      
       projCoords
       
     project: () ->
