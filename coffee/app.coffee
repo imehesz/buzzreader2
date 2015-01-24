@@ -187,21 +187,27 @@ $ ->
       pageWidth = @page.width
       pageHeight = @page.height
       
-      panelWidth = @panel.getMaxX() - @panel.getMinX()
-      panelHeight = @panel.getMaxY() - @panel.getMinY()
+      origPanelWidth = @panel.getMaxX() - @panel.getMinX()
+      origPanelHeight = @panel.getMaxY() - @panel.getMinY()
       
-      isLandscape = panelWidth > panelHeight
+      isLandscape = origPanelWidth > origPanelHeight
       isPortrait = !isLandscape
       
       projectorWidth = @width
       projectorHeight = @height
       
-      widthZoom = projectorWidth/panelWidth
-      heightZoom = projectorHeight/panelHeight
+      widthZoom = projectorWidth/origPanelWidth
+      heightZoom = projectorHeight/origPanelHeight
       zoomer = widthZoom
       
-      xCorrection = @panel.getMinX()*zoomer
-      yCorrection = @panel.getMinY()*zoomer
+      panelWidth = Math.floor origPanelWidth*zoomer
+      panelHeight = Math.floor origPanelHeight*zoomer
+      
+      centerX = Math.floor projectorWidth/2
+      centerY = Math.floor projectorHeight/2
+      
+      xCorrection = Math.floor @panel.getMinX()*zoomer
+      yCorrection = Math.floor((@panel.getMinY()*zoomer)-((projectorHeight-panelHeight)/2))
       
       coords.forEach (coord) ->
         tmpX = coord.x
@@ -215,14 +221,20 @@ $ ->
         
         if isPortrait
           zoomer = heightZoom
-          xCorrection = t.panel.getMinX()*zoomer
-          yCorrection = t.panel.getMinY()*zoomer
+          panelWidth = Math.floor origPanelWidth*zoomer
+          panelHeight = Math.floor origPanelHeight*zoomer
+          
+          xCorrection = Math.floor((t.panel.getMinX()*zoomer)-((projectorWidth-panelWidth)/2))
+          yCorrection = Math.floor t.panel.getMinY()*zoomer
         
         tmpX *= zoomer
         tmpY *= zoomer
         
-        projCoords.push tmpX
-        projCoords.push tmpY
+        console.log "panelWidth", panelWidth
+        console.log "panelHeight", panelHeight
+        
+        #projCoords.push tmpX
+        #projCoords.push tmpY
         
         projCoords.push x:(Math.floor(tmpX)-xCorrection),y:(Math.floor(tmpY)-yCorrection)
         #projCoords.push x:Math.floor(coord.x),y:Math.floor(coord.y)
