@@ -182,14 +182,20 @@ $ ->
       
     calculateProjectorCoordinates: (coords) ->
       t = @
+      
+      panelCoords = new Coordinate(coords.join(","))
+      panelCoordObjs = panelCoords.getCoordinateObjects();
+      
       console.log("HEYOOOO",@page.width,@page.height)
       projCoordObjs = []
       projCoords = []
       pageWidth = @page.width
       pageHeight = @page.height
       
-      origPanelWidth = @panel.getMaxX() - @panel.getMinX()
-      origPanelHeight = @panel.getMaxY() - @panel.getMinY()
+      #origPanelWidth = @panel.getMaxX() - @panel.getMinX()
+      #origPanelHeight = @panel.getMaxY() - @panel.getMinY()
+      origPanelWidth = panelCoords.getMaxX() - panelCoords.getMinX()
+      origPanelHeight = panelCoords.getMaxY() - panelCoords.getMinY()
       
       isLandscape = origPanelWidth > origPanelHeight
       isPortrait = !isLandscape
@@ -207,10 +213,13 @@ $ ->
       centerX = Math.floor projectorWidth/2
       centerY = Math.floor projectorHeight/2
       
-      xCorrection = Math.floor @panel.getMinX()*zoomer
-      yCorrection = Math.floor((@panel.getMinY()*zoomer)-((projectorHeight-panelHeight)/2))
+      # xCorrection = Math.floor @panel.getMinX()*zoomer
+      # yCorrection = Math.floor((@panel.getMinY()*zoomer)-((projectorHeight-panelHeight)/2))
       
-      coords.forEach (coord) ->
+      xCorrection = Math.floor panelCoords.getMinX()*zoomer
+      yCorrection = Math.floor((panelCoords.getMinY()*zoomer)-((projectorHeight-panelHeight)/2))
+      
+      panelCoordObjs.forEach (coord) ->
         tmpX = coord.x
         tmpY = coord.y
         
@@ -225,11 +234,16 @@ $ ->
           panelWidth = Math.floor origPanelWidth*zoomer
           panelHeight = Math.floor origPanelHeight*zoomer
           
-          xCorrection = Math.floor((t.panel.getMinX()*zoomer)-((projectorWidth-panelWidth)/2))
-          yCorrection = Math.floor t.panel.getMinY()*zoomer
+          # xCorrection = Math.floor((t.panel.getMinX()*zoomer)-((projectorWidth-panelWidth)/2))
+          # yCorrection = Math.floor t.panel.getMinY()*zoomer
+          
+          xCorrection = Math.floor((panelCoords.getMinX()*zoomer)-((projectorWidth-panelWidth)/2))
+          yCorrection = Math.floor panelCoords.getMinY()*zoomer
         
         tmpX *= zoomer
         tmpY *= zoomer
+
+        console.log tmpX, tmpY, zoomer, xCorrection, yCorrection
         
         console.log "panelWidth", panelWidth
         console.log "panelHeight", panelHeight
@@ -241,10 +255,14 @@ $ ->
         #projCoords.push x:Math.floor(coord.x),y:Math.floor(coord.y)
         
       
-      bgMoveX = centerX - (@panel.getMinX()*zoomer) - (panelWidth/2)
-      bgMoveY = centerY - (@panel.getMinY()*zoomer) - (panelHeight/2)
+      bgMoveX = centerX - (panelCoords.getMinX()*zoomer) - (panelWidth/2)
+      bgMoveY = centerY - (panelCoords.getMinY()*zoomer) - (panelHeight/2)
       
-      $("#" + @projectorId).css("background-position", bgMoveX+"px "+bgMoveY+"px")
+      if  @bookManager.getViewLevel() is @bookManager.PANEL_VIEW
+        $("#" + @projectorId).css("background-position", bgMoveX+"px "+bgMoveY+"px")
+      else
+        $("#" + @projectorId).css("background-position", "center")
+        
       $("#" + @projectorId).css("background-size", (pageWidth*zoomer)+"px "+(pageHeight*zoomer)+"px")
       
       projCoords
@@ -256,9 +274,9 @@ $ ->
       # console.log "Page", @getPage()
       
       if @bookManager.getViewLevel() == @bookManager.PANEL_VIEW
-        @render(@calculateProjectorCoordinates @getPanel().getCoordinateObjects())
+        @render(@calculateProjectorCoordinates @getPanel().getCoordinates())
       else
-        @render(@calculateProjectorCoordinates new Coordinate("0,0," + @page.width + "," + @page.height).getCoordinateObjects())
+        @render(@calculateProjectorCoordinates new Coordinate("0,0," + @page.width + "," + @page.height).getCoordinates())
     next: ->
       loadNextPage = false
       if @bookManager.getViewLevel() == @bookManager.PANEL_VIEW
