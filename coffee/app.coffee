@@ -147,6 +147,7 @@ $ ->
     getPanel: -> @panel
     getWidth: -> document.getElementById(@projectorId).offsetWidth
     getHeight: -> document.getElementById(@projectorId).offsetHeight
+    adjustBackground: () ->
     render: (coords) ->
       
       @c = $("#projector-overlay")[0] if @c is null
@@ -240,6 +241,11 @@ $ ->
         #projCoords.push x:Math.floor(coord.x),y:Math.floor(coord.y)
         
       
+      bgMoveX = centerX - (@panel.getMinX()*zoomer) - (panelWidth/2)
+      bgMoveY = centerY - (@panel.getMinY()*zoomer) - (panelHeight/2)
+      
+      $("#" + @projectorId).css("background-position", bgMoveX+"px "+bgMoveY+"px")
+      $("#" + @projectorId).css("background-size", (pageWidth*zoomer)+"px "+(pageHeight*zoomer)+"px")
       
       projCoords
       
@@ -324,17 +330,13 @@ $ ->
         new Coordinate "13,406,230,474,229,407"
       ])
       
-      new Page("https://cde6dc9e64e2615158334e81fa60a42a7025dcd4.googledrive.com/host/0B55OYxnBow_9ZE1FRnJCdXNheXc/bizzbuzztest1.png", [
-        new Coordinate "244,4,256,88,-4,38,24,10,98,6"
-        new Coordinate "268,176,4,174,10,48,256,110,258,114"
-        new Coordinate "8,192,116,188,156,300,-6,282"
-        new Coordinate "254,202,274,316,168,310,144,184"])
-        
-      new Page("https://cde6dc9e64e2615158334e81fa60a42a7025dcd4.googledrive.com/host/0B55OYxnBow_9ZE1FRnJCdXNheXc/bizzbuzztest2.jpg", [
-        new Coordinate "11,12,13,14"])
-        
-      new Page("https://cde6dc9e64e2615158334e81fa60a42a7025dcd4.googledrive.com/host/0B55OYxnBow_9ZE1FRnJCdXNheXc/bizzbuzztest3.jpg", [
-        new Coordinate "10,10,10,10"])
+      new Page("http://i.imgur.com/uf7miIB.jpg",[
+        new Coordinate "34,32,460,786"
+        new Coordinate "506,50,984,142"
+        new Coordinate "512,174,666,178,678,278,698,310,828,320,824,414,642,418,614,664,486,658,500,172"
+        new Coordinate "716,146,998,144,996,782,906,640,842,644,774,672,762,752,642,742,650,562,700,474,798,442,834,368,810,312,716,302"
+        new Coordinate "462,668,644,664,650,750,764,766,776,672,838,642,892,688,918,772,938,824,634,824,634,872,458,868"
+      ])
     ]
   
   bm = new BookManager(bookObj)
