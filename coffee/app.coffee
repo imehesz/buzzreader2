@@ -229,24 +229,31 @@ $ ->
         tmpY = 0 if tmpY < 0
         tmpY = pageHeight if tmpY > pageHeight
         
-        if isPortrait
+        if isPortrait or panelHeight > projectorHeight
+          # console.log "panelHeight > projectorHeight ? ", panelHeight, projectorHeight
           zoomer = heightZoom
           panelWidth = Math.floor origPanelWidth*zoomer
           panelHeight = Math.floor origPanelHeight*zoomer
-          
-          # xCorrection = Math.floor((t.panel.getMinX()*zoomer)-((projectorWidth-panelWidth)/2))
-          # yCorrection = Math.floor t.panel.getMinY()*zoomer
-          
+
           xCorrection = Math.floor((panelCoords.getMinX()*zoomer)-((projectorWidth-panelWidth)/2))
           yCorrection = Math.floor panelCoords.getMinY()*zoomer
+          
+          if panelWidth > projectorWidth
+            zoomer = widthZoom
+            panelWidth = Math.floor origPanelWidth*zoomer
+            panelHeight = Math.floor origPanelHeight*zoomer
+          
+            xCorrection = Math.floor panelCoords.getMinX()*zoomer
+            yCorrection = Math.floor((panelCoords.getMinY()*zoomer)-((projectorHeight-panelHeight)/2))
+        
         
         tmpX *= zoomer
         tmpY *= zoomer
 
-        console.log tmpX, tmpY, zoomer, xCorrection, yCorrection
+        # console.log tmpX, tmpY, zoomer, xCorrection, yCorrection
         
-        console.log "panelWidth", panelWidth
-        console.log "panelHeight", panelHeight
+        # console.log "panelWidth", panelWidth
+        # console.log "panelHeight", panelHeight
         
         #projCoords.push tmpX
         #projCoords.push tmpY
@@ -358,7 +365,7 @@ $ ->
     ]
   
   bm = new BookManager(bookObj)
-  #bm.setViewLevel bm.PAGE_VIEW
+  # bm.setViewLevel bm.PAGE_VIEW
   
   #console.log bm.getMaxPage()
   #console.log bm.getCurrentPage().getCurrentPanel().getCoordinates()
