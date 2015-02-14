@@ -147,6 +147,10 @@ $(function(){
       this.currentPanelIdx = 0;
     }
     
+    getUrl () {
+      return this.url;
+    }
+    
     getPanelIndex () {
       return this.currentPanelIdx;
     }
@@ -247,6 +251,231 @@ $(function(){
     }
   }
   
+  class Projector {
+    constructor (projectorId, bookManager) {
+      this.projectorId = projectorId;
+      this.bookManager = bookManager;
+      
+      this.setPage(this.bookManager.getCurrentPage());
+      this.setPanel(this.getPage().getCurrentPanel());
+      this.c = null;
+      this.ctx = null;
+      
+      // TODO check on this...
+      this.width = this.getWidth();
+      this.height = this.getHeight();
+    }
+    
+    getPage () {
+      return this.page;
+    }
+    
+    setPage (page) {
+      this.page = page;
+      // TODO we shouldn't need to get the projector all the time ...
+      var proj = document.querySelector("#" + this.projectorId);
+      proj.style.backgroundImage = "url(" + this.page.getUrl() + ")";
+    }
+    
+    getPanel () {
+      return this.panel;  
+    }
+    
+    setPanel (panel) {
+      this.panel = panel;
+    }
+    
+    
+    getWidth () {
+      return this.width = document.querySelector("#" + this.projectorId).offsetWidth;
+    }
+    
+    getHeight () {
+      return this.height = document.querySelector("#" + this.projectorId).offsetHeight;
+    }
+    
+    adjustBackground () {}
+    
+    render (coords) {
+      if (this.c == null) {
+        this.c = document.querySelector("#projector-overlay");
+      }
+      
+      if (this.ctx == null && this.c != null) {
+        this.ctx = this.c.getContext("2d");
+      }
+      
+      if (this.ctx) {
+        this.ctx.clearRect(0,0,this.c.width, this.c.height);
+        
+        this.ctx.fillStyle = "black";
+        this.ctx.fillRect(0,0,this.c.width, this.c.height);
+        
+        this.ctx.fillStyle = "rgba(0,0,0,1)";
+        this.ctx.globalCompositeOperation = "destination-out";
+        
+        this.ctx.beginPath();
+        
+        for(let i=0; i<coords.length;i++) {
+          let coord = coords[i];
+          if (i==0) this.ctx.moveTo(coord.x, coord.y);
+          if (i>0) this.ctx.lineTo(coord.x, coord.y);
+        }
+        
+        this.ctx.fill();
+        this.ctx.globalCompositeOperation = "source-over";
+      }
+    }
+    
+    calculateProjectorCoordinates (coords) {
+      var t = this;
+      
+      var panelCoords = new Coordinate(coords.join(","));
+      var panelCoordObjs = panelCoords.getCoordinateObjects();
+      
+      var projCoordObjs = [];
+      var projCoords = [];
+      
+      var pageWidth = this.page.width;
+      var pageHeight = this.page.height;
+      
+      var origPanelWidth = panelCoords.maxX() - panelCoords.minX();
+      var origPanelHeight = panelCoords.maxY() - panelCoords.minY();
+      
+      var isLandscape = origPanelWidth > origPanelHeight;
+      var isPortrait = !isLandscape;
+      
+      var projectorWidth = this.width;
+      var projectorHeight = this.height;
+      
+      var widthZoom = projectorWidth/origPanelWidth;
+      var heightZoom = projectorHeight/origPanelHeight;
+      var zoomer = widthZoom;
+      
+      var panelWidth = Math.floor(origPanelWidth*zoomer);
+      var panelHeight = Math.floor(origPanelHeight*zoomer);
+      
+      var centerX = Math.floor(projectorWidth/2);
+      var centerY = Math.floor(projectorHeight/2);
+      
+      var xCorrection = Math.floor(panelCoords.minX()*zoomer);
+      var yCorrection = Math.floor((panelCoords.minY()*zoomer)-((projectorHeight-panelHeight)/2));
+
+      panelCoordObjs.forEach(function(coord) {
+        var tmpX = coord.x;
+        var tmpY = coord.y;
+        
+        if (tmpX < 0) tmpX = 0;
+        if (tmpX > pageWidth) tmpX = pageWidth;
+        
+        if (tmpY < 0) tmpY = 0;
+        if (tmpY > pageHeight) tmpY = pageHeight;
+        
+        if (isPortrait || panelHeight > projectorHeight) {
+          zoomer = heightZoom;
+          panelWidth = Math.floor(origPanelWidth*zoomer);
+          panelHeight = Math.floor(origPanelHeight*zoomer);
+          
+          xCorrection = Math.floor((panelCoords.minX()*zoomer)-((projectorWidth-panelWidth)/2));
+          yCorrection = Math.floor(panelCoords.minY()*zoomer);
+          
+          if (panelWidth > projectorWidth) {
+            zoomer = widthZoom;
+            panelWidth = Math.floor(origPanelWidth*zoomer);
+            panelHeight = Math.floor(origPanelHeight*zoomer);
+            
+            xCorrection = Math.floor(panelCoords.minX()*zoomer);
+            yCorrection = Math.floor((panelCoords.minY()*zoomer)-((projectorHeight-panelHeight)/2));
+          }
+        }
+        
+        tmpX *= zoomer;
+        tmpY *= zoomer;
+        
+        projCoords.push({x:(Math.floor(tmpX)-xCorrection),y:(Math.floor(tmpY)-yCorrection)});
+      });
+      
+      // TODO move background stuff out of here
+      var bgMoveX = centerX - (panelCoords.minX()*zoomer) - (panelWidth/2);
+      var bgMoveY = centerY - (panelCoords.minY()*zoomer) - (panelHeight/2);
+
+      if (this.bookManager.getViewLevel() == this.bookManager.PANEL_VIEW) {
+        $("#" + this.projectorId).css("background-position", bgMoveX+"px "+bgMoveY+"px");
+      } else {
+        $("#" + this.projectorId).css("background-position", "center");
+      }
+      
+      return projCoords;
+    }
+    
+    project () {
+      if(this.bookManager.getViewLevel() == this.bookManager.PANEL_VIEW) {
+        this.render(this.calculateProjectorCoordinates(this.getPanel().getCoordinates()));
+      } else {
+        this.render(this.calculateProjectorCoordinates(new Coordinate("0,0," + this.page.width + "," + this.page.height).getCoordinates()));
+      }
+    }
+    
+    next () {
+      var loadNextPage = false;
+      
+      if (this.bookManager.getViewLevel() == this.bookManager.PANEL_VIEW) {
+        // if it is the last panel, we try to load the next page
+        if (this.getPage().isLastPanel()) {
+          loadNextPage = true;
+        } else {
+          this.setPanel(this.getPage().getNextPanel());
+          this.project();
+        }
+      } else {
+        loadNextPage = true;
+      }
+      
+      if (loadNextPage) {
+        if (this.bookManager.isLastPage()) {
+          console.log("LAST PAGE!!! OVER");
+        } else {
+          this.setPage(this.bookManager.getNextPage(function(){
+            this.getPage().setPanelIndex(0);
+            this.setPanel(this.getPage().getCurrentPanel());
+            this.project();
+          }, this));
+        }
+      }
+    }
+    
+    prev () {
+      var loadPreviousPage = false;
+      
+      if (this.bookManager.getViewLevel() == this.bookManager.PANEL_VIEW) {
+        // if it's the first panel, we have to get the previous page
+        if (this.getPage().isFirstPanel()) {
+          loadPreviousPage = true;
+        } else {
+          this.setPanel(this.getPage().getPreviousPanel());
+          
+          // TODO check if we can return here
+          this.project();
+        }
+      } else {
+        loadPreviousPage = true;
+      }
+      
+      if (loadPreviousPage) {
+        if (this.bookManager.isFirstPage()) {
+          console.log("FIRST PAGE!");
+        } else {
+          this.setPage(this.bookManager.getPreviousPage(function(){
+            this.getPage().setPanelIndex(this.getPage().getPanelCount()-1);
+            this.project();
+          }, this));
+        }
+      }
+    }
+    
+    
+  }
+  
   // in DEBUG mode we run some tests
   if (DEBUG) {
     var book = {
@@ -273,9 +502,15 @@ $(function(){
           new Coordinate("462,668,644,664,650,750,764,766,776,672,838,642,892,688,918,772,938,824,634,824,634,872,458,868")
         ])
       ]
-    }
+    };
     
     var bm = new BookManager(book);
+    // bm.setViewLevel(bm.PAGE_VIEW);
+    
+    var p = new Projector("projector1", bm);
+    bm.getCurrentPage(p.project, p);
+
+  
     var page = book.pages[0];
   
     var qt = new QuickTest();
