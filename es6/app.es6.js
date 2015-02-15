@@ -73,7 +73,8 @@ $(function(){
       var y1 = coords[1];
       var x2 = coords[2];
       var y2 = coords[3];
-      return [x1,y1,x2,y1,x2,y2,x1,y2]
+      
+      return [x1,y1,x2,y1,x2,y2,x1,y2];
     }
     
     /**
@@ -111,7 +112,7 @@ $(function(){
      * @return Number
      */
     maxY () {
-      Math.max.apply(Math, this.ys());
+      return Math.max.apply(Math, this.ys());
     }
     
     /**
@@ -119,7 +120,7 @@ $(function(){
      * @return Number
      */
     minY () {
-      Math.min.apply(Math, this.ys());
+      return Math.min.apply(Math, this.ys());
     }
     
     /**
@@ -127,7 +128,7 @@ $(function(){
      * @return Number
      */
     maxX () {
-      Math.max.apply(Math, this.xs());
+      return Math.max.apply(Math, this.xs());
     }
     
     /**
@@ -135,7 +136,7 @@ $(function(){
      * @return Number
      */
     minX () {
-      Math.min.apply(Math, this.xs());
+      return Math.min.apply(Math, this.xs());
     }
   }
   
@@ -297,6 +298,8 @@ $(function(){
     adjustBackground () {}
     
     render (coords) {
+      console.log("render", coords);
+      
       if (this.c == null) {
         this.c = document.querySelector("#projector-overlay");
       }
@@ -395,6 +398,7 @@ $(function(){
         projCoords.push({x:(Math.floor(tmpX)-xCorrection),y:(Math.floor(tmpY)-yCorrection)});
       });
       
+      
       // TODO move background stuff out of here
       var bgMoveX = centerX - (panelCoords.minX()*zoomer) - (panelWidth/2);
       var bgMoveY = centerY - (panelCoords.minY()*zoomer) - (panelHeight/2);
@@ -405,6 +409,8 @@ $(function(){
         $("#" + this.projectorId).css("background-position", "center");
       }
       
+      $("#" + this.projectorId).css("background-size", (pageWidth*zoomer)+"px "+(pageHeight*zoomer)+"px");
+
       return projCoords;
     }
     
@@ -417,6 +423,7 @@ $(function(){
     }
     
     next () {
+      console.log("projector next");
       var loadNextPage = false;
       
       if (this.bookManager.getViewLevel() == this.bookManager.PANEL_VIEW) {
@@ -426,6 +433,7 @@ $(function(){
         } else {
           this.setPanel(this.getPage().getNextPanel());
           this.project();
+          //return;
         }
       } else {
         loadNextPage = true;
@@ -445,6 +453,7 @@ $(function(){
     }
     
     prev () {
+      console.log("projector prev");
       var loadPreviousPage = false;
       
       if (this.bookManager.getViewLevel() == this.bookManager.PANEL_VIEW) {
@@ -456,6 +465,7 @@ $(function(){
           
           // TODO check if we can return here
           this.project();
+          //return;
         }
       } else {
         loadPreviousPage = true;
@@ -510,6 +520,8 @@ $(function(){
     var p = new Projector("projector1", bm);
     bm.getCurrentPage(p.project, p);
 
+    document.querySelector("#back").onclick = function(){p.prev();};
+    document.querySelector("#next").onclick = function(){p.next();};
   
     var page = book.pages[0];
   
