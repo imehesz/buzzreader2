@@ -522,8 +522,11 @@ $(function(){
 
     document.querySelector("#back").onclick = function(){p.prev();};
     document.querySelector("#next").onclick = function(){p.next();};
-  
-    var page = book.pages[0];
+    
+    // TESTING!
+    var testBook = book;
+    var tbm = new BookManager(testBook);
+    var page = testBook.pages[0];
   
     var qt = new QuickTest();
     
@@ -534,12 +537,12 @@ $(function(){
     qt.eq("after `next` page.isFirstPanel() should be `false`", page.isFirstPanel(), false);
     
     // book test
-    qt.eq("viewLevel should be same as PANEL_VIEW", bm.getViewLevel(), bm.PANEL_VIEW);
-    qt.eq("currentPageIdx should be 0", bm.currentPageIdx, 0);
-    qt.eq("getMaxPage should be 2", bm.getMaxPage(), 2);
-    qt.eq("isFirstPage should be true", bm.isFirstPage(), true);
-    qt.eq("isLastPage should be false", bm.isLastPage(), false);
-    bm.getNextPage();
-    qt.eq("after nextPage isLastPage should be true", bm.isLastPage(), true);
+    qt.eq("viewLevel should be same as PANEL_VIEW", tbm.getViewLevel(), tbm.PANEL_VIEW);
+    qt.eq("currentPageIdx should be 0", tbm.currentPageIdx, 0);
+    qt.eq("getMaxPage should be 2", tbm.getMaxPage(), 2);
+    qt.eq("isFirstPage should be `true`", tbm.isFirstPage(), true);
+    qt.eq("isLastPage should be `false`", tbm.isLastPage(), false);
+    tbm.getNextPage();
+    qt.eq("after nextPage isLastPage should be `true`", tbm.isLastPage(), true);
   }
 });
