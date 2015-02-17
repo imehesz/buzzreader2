@@ -477,6 +477,7 @@ $(function(){
         } else {
           this.setPage(this.bookManager.getPreviousPage(function(){
             this.getPage().setPanelIndex(this.getPage().getPanelCount()-1);
+            this.setPanel(this.getPage().getCurrentPanel());
             this.project();
           }, this));
         }
