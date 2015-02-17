@@ -220,7 +220,7 @@ $(function(){
     }
     
     getCurrentPage (cb, scope) {
-      console.log("Loading image: " + this.pages[this.currentPageIdx].url);
+      // console.log("Loading image: " + this.pages[this.currentPageIdx].url);
       var page = this.pages[this.currentPageIdx];
       var image = new Image();
       image.src = this.pages[this.currentPageIdx].url;
@@ -298,8 +298,6 @@ $(function(){
     adjustBackground () {}
     
     render (coords) {
-      console.log("render", coords);
-      
       if (this.c == null) {
         this.c = document.querySelector("#projector-overlay");
       }
@@ -423,7 +421,6 @@ $(function(){
     }
     
     next () {
-      console.log("projector next");
       var loadNextPage = false;
       
       if (this.bookManager.getViewLevel() == this.bookManager.PANEL_VIEW) {
@@ -433,16 +430,14 @@ $(function(){
         } else {
           this.setPanel(this.getPage().getNextPanel());
           this.project();
-          //return;
+          return;
         }
       } else {
         loadNextPage = true;
       }
       
       if (loadNextPage) {
-        if (this.bookManager.isLastPage()) {
-          console.log("LAST PAGE!!! OVER");
-        } else {
+        if (!this.bookManager.isLastPage()) {
           this.setPage(this.bookManager.getNextPage(function(){
             this.getPage().setPanelIndex(0);
             this.setPanel(this.getPage().getCurrentPanel());
@@ -453,7 +448,6 @@ $(function(){
     }
     
     prev () {
-      console.log("projector prev");
       var loadPreviousPage = false;
       
       if (this.bookManager.getViewLevel() == this.bookManager.PANEL_VIEW) {
@@ -462,19 +456,15 @@ $(function(){
           loadPreviousPage = true;
         } else {
           this.setPanel(this.getPage().getPreviousPanel());
-          
-          // TODO check if we can return here
           this.project();
-          //return;
+          return;
         }
       } else {
         loadPreviousPage = true;
       }
       
       if (loadPreviousPage) {
-        if (this.bookManager.isFirstPage()) {
-          console.log("FIRST PAGE!");
-        } else {
+        if (!this.bookManager.isFirstPage()) {
           this.setPage(this.bookManager.getPreviousPage(function(){
             this.getPage().setPanelIndex(this.getPage().getPanelCount()-1);
             this.setPanel(this.getPage().getCurrentPanel());
@@ -483,12 +473,8 @@ $(function(){
         }
       }
     }
-    
-    
   }
   
-  // in DEBUG mode we run some tests
-  if (DEBUG) {
     var book = {
       title: "Some Title",
       writer: "A Writer",
@@ -522,11 +508,48 @@ $(function(){
     bm.getCurrentPage(p.project, p);
 
     document.querySelector("#back").onclick = function(){p.prev();};
-    document.querySelector("#next").onclick = function(){p.next();};
+    document.querySelector("#next").onclick = function(){
+      if ( (bm.getViewLevel() == bm.PAGE_VIEW && bm.isLastPage() ) || 
+           (bm.getViewLevel() == bm.PANEL_VIEW && bm.isLastPage() && p.getPage().isLastPanel())) {
+        alert("Last Panel Alert!");
+      }
+      p.next();
+    };
     
+    
+  
+  // in DEBUG mode we run some tests
+  if (DEBUG) {
     // TESTING!
-    var testBook = book;
+    var testBook = {
+      title: "Some Title",
+      writer: "A Writer",
+      illustrator: "An Illustrator",
+      pages: [
+        new Page("https://5590b350b8e8612362e86b9426c7815b2a13a98a.googledrive.com/host/0B55OYxnBow_9UG5HbW1fWGhkR2c/bizzbuzzpaneltest.png", [
+          new Coordinate("10,9,114,118"),
+          new Coordinate("12,125,114,175"),
+          new Coordinate("130,9,236,175"),
+          new Coordinate("12,188,236,251"),
+          new Coordinate("20,284,10,304,10,334,25,354,65,371,100,355,121,326,112,281,81,261,29,266,22,277,22,277,14,287,14,287,26,273"),
+          new Coordinate("172,284,140,305,131,345,140,360,149,365,142,385,146,399,194,400,213,375,202,345,230,328,238,296,211,267,173,276"),
+          new Coordinate("9,427,13,481,234,486,230,485"),
+          new Coordinate("13,406,230,474,229,407")
+        ]),
+        
+        new Page("http://i.imgur.com/uf7miIB.jpg",[
+          new Coordinate("34,32,460,786"),
+          new Coordinate("506,50,984,142"),
+          new Coordinate("512,174,666,178,678,278,698,310,828,320,824,414,642,418,614,664,486,658,500,172"),
+          new Coordinate("716,146,998,144,996,782,906,640,842,644,774,672,762,752,642,742,650,562,700,474,798,442,834,368,810,312,716,302"),
+          new Coordinate("462,668,644,664,650,750,764,766,776,672,838,642,892,688,918,772,938,824,634,824,634,872,458,868")
+        ])
+      ]
+    };
+    
+    
     var tbm = new BookManager(testBook);
+    
     var page = testBook.pages[0];
   
     var qt = new QuickTest();
