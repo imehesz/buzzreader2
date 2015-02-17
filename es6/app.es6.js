@@ -265,6 +265,10 @@ $(function(){
       // TODO check on this...
       this.width = this.getWidth();
       this.height = this.getHeight();
+      
+      this.zoomer = 1;
+      this.bgMoveX = 0;
+      this.bgMoveY = 0;
     }
     
     getPage () {
@@ -295,7 +299,15 @@ $(function(){
       return this.height = document.querySelector("#" + this.projectorId).offsetHeight;
     }
     
-    adjustBackground () {}
+    adjustBackground () {
+      if (this.bookManager.getViewLevel() == this.bookManager.PANEL_VIEW) {
+        $("#" + this.projectorId).css("background-position", this.bgMoveX+"px "+this.bgMoveY+"px");
+      } else {
+        $("#" + this.projectorId).css("background-position", "center");
+      }
+      
+      $("#" + this.projectorId).css("background-size", (this.getPage().width*this.zoomer)+"px "+(this.getPage().height*this.zoomer)+"px");
+    }
     
     render (coords) {
       if (this.c == null) {
@@ -351,20 +363,20 @@ $(function(){
       
       var widthZoom = projectorWidth/origPanelWidth;
       var heightZoom = projectorHeight/origPanelHeight;
-      var zoomer = widthZoom;
+      this.zoomer = widthZoom;
       
-      var panelWidth = Math.floor(origPanelWidth*zoomer);
-      var panelHeight = Math.floor(origPanelHeight*zoomer);
+      var panelWidth = Math.floor(origPanelWidth*this.zoomer);
+      var panelHeight = Math.floor(origPanelHeight*this.zoomer);
       
       var centerX = Math.floor(projectorWidth/2);
       var centerY = Math.floor(projectorHeight/2);
       
-      var xCorrection = Math.floor(panelCoords.minX()*zoomer);
-      var yCorrection = Math.floor((panelCoords.minY()*zoomer)-((projectorHeight-panelHeight)/2));
+      var xCorrection = Math.floor(panelCoords.minX()*this.zoomer);
+      var yCorrection = Math.floor((panelCoords.minY()*this.zoomer)-((projectorHeight-panelHeight)/2));
 
-      panelCoordObjs.forEach(function(coord) {
-        var tmpX = coord.x;
-        var tmpY = coord.y;
+      panelCoordObjs.forEach( (coord) => {
+        let tmpX = coord.x;
+        let tmpY = coord.y;
         
         if (tmpX < 0) tmpX = 0;
         if (tmpX > pageWidth) tmpX = pageWidth;
@@ -373,41 +385,33 @@ $(function(){
         if (tmpY > pageHeight) tmpY = pageHeight;
         
         if (isPortrait || panelHeight > projectorHeight) {
-          zoomer = heightZoom;
-          panelWidth = Math.floor(origPanelWidth*zoomer);
-          panelHeight = Math.floor(origPanelHeight*zoomer);
+          this.zoomer = heightZoom;
+          panelWidth = Math.floor(origPanelWidth*this.zoomer);
+          panelHeight = Math.floor(origPanelHeight*this.zoomer);
           
-          xCorrection = Math.floor((panelCoords.minX()*zoomer)-((projectorWidth-panelWidth)/2));
-          yCorrection = Math.floor(panelCoords.minY()*zoomer);
+          xCorrection = Math.floor((panelCoords.minX()*this.zoomer)-((projectorWidth-panelWidth)/2));
+          yCorrection = Math.floor(panelCoords.minY()*this.zoomer);
           
           if (panelWidth > projectorWidth) {
-            zoomer = widthZoom;
-            panelWidth = Math.floor(origPanelWidth*zoomer);
-            panelHeight = Math.floor(origPanelHeight*zoomer);
+            this.zoomer = widthZoom;
+            panelWidth = Math.floor(origPanelWidth*this.zoomer);
+            panelHeight = Math.floor(origPanelHeight*this.zoomer);
             
-            xCorrection = Math.floor(panelCoords.minX()*zoomer);
-            yCorrection = Math.floor((panelCoords.minY()*zoomer)-((projectorHeight-panelHeight)/2));
+            xCorrection = Math.floor(panelCoords.minX()*this.zoomer);
+            yCorrection = Math.floor((panelCoords.minY()*this.zoomer)-((projectorHeight-panelHeight)/2));
           }
         }
         
-        tmpX *= zoomer;
-        tmpY *= zoomer;
+        tmpX *= this.zoomer;
+        tmpY *= this.zoomer;
         
         projCoords.push({x:(Math.floor(tmpX)-xCorrection),y:(Math.floor(tmpY)-yCorrection)});
       });
       
       
-      // TODO move background stuff out of here
-      var bgMoveX = centerX - (panelCoords.minX()*zoomer) - (panelWidth/2);
-      var bgMoveY = centerY - (panelCoords.minY()*zoomer) - (panelHeight/2);
-
-      if (this.bookManager.getViewLevel() == this.bookManager.PANEL_VIEW) {
-        $("#" + this.projectorId).css("background-position", bgMoveX+"px "+bgMoveY+"px");
-      } else {
-        $("#" + this.projectorId).css("background-position", "center");
-      }
-      
-      $("#" + this.projectorId).css("background-size", (pageWidth*zoomer)+"px "+(pageHeight*zoomer)+"px");
+      // setting background movement, it only matters if we are in PANEL_VIEW but we set it anyway
+      this.bgMoveX = centerX - (panelCoords.minX()*this.zoomer) - (panelWidth/2);
+      this.bgMoveY = centerY - (panelCoords.minY()*this.zoomer) - (panelHeight/2);
 
       return projCoords;
     }
@@ -418,6 +422,8 @@ $(function(){
       } else {
         this.render(this.calculateProjectorCoordinates(new Coordinate("0,0," + this.page.width + "," + this.page.height).getCoordinates()));
       }
+      
+      this.adjustBackground();
     }
     
     next () {
@@ -515,8 +521,6 @@ $(function(){
       }
       p.next();
     };
-    
-    
   
   // in DEBUG mode we run some tests
   if (DEBUG) {
