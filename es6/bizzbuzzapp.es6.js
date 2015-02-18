@@ -1,4 +1,4 @@
-$(function(){
+
   var DEBUG = true;
   
   class QuickTest {
@@ -314,6 +314,11 @@ $(function(){
         this.c = document.querySelector("#projector-overlay");
       }
       
+      // TODO maybe overkill but we don't have to worry about resizing
+      // and portrait vs. landscape modes
+      this.c.setAttribute("width", this.c.parentElement.clientWidth);
+      this.c.setAttribute("height", this.c.parentElement.clientHeight);
+      
       if (this.ctx == null && this.c != null) {
         this.ctx = this.c.getContext("2d");
       }
@@ -481,47 +486,6 @@ $(function(){
     }
   }
   
-    var book = {
-      title: "Some Title",
-      writer: "A Writer",
-      illustrator: "An Illustrator",
-      pages: [
-        new Page("https://5590b350b8e8612362e86b9426c7815b2a13a98a.googledrive.com/host/0B55OYxnBow_9UG5HbW1fWGhkR2c/bizzbuzzpaneltest.png", [
-          new Coordinate("10,9,114,118"),
-          new Coordinate("12,125,114,175"),
-          new Coordinate("130,9,236,175"),
-          new Coordinate("12,188,236,251"),
-          new Coordinate("20,284,10,304,10,334,25,354,65,371,100,355,121,326,112,281,81,261,29,266,22,277,22,277,14,287,14,287,26,273"),
-          new Coordinate("172,284,140,305,131,345,140,360,149,365,142,385,146,399,194,400,213,375,202,345,230,328,238,296,211,267,173,276"),
-          new Coordinate("9,427,13,481,234,486,230,485"),
-          new Coordinate("13,406,230,474,229,407")
-        ]),
-        
-        new Page("http://i.imgur.com/uf7miIB.jpg",[
-          new Coordinate("34,32,460,786"),
-          new Coordinate("506,50,984,142"),
-          new Coordinate("512,174,666,178,678,278,698,310,828,320,824,414,642,418,614,664,486,658,500,172"),
-          new Coordinate("716,146,998,144,996,782,906,640,842,644,774,672,762,752,642,742,650,562,700,474,798,442,834,368,810,312,716,302"),
-          new Coordinate("462,668,644,664,650,750,764,766,776,672,838,642,892,688,918,772,938,824,634,824,634,872,458,868")
-        ])
-      ]
-    };
-    
-    var bm = new BookManager(book);
-    // bm.setViewLevel(bm.PAGE_VIEW);
-    
-    var p = new Projector("projector1", bm);
-    bm.getCurrentPage(p.project, p);
-
-    document.querySelector("#back").onclick = function(){p.prev();};
-    document.querySelector("#next").onclick = function(){
-      if ( (bm.getViewLevel() == bm.PAGE_VIEW && bm.isLastPage() ) || 
-           (bm.getViewLevel() == bm.PANEL_VIEW && bm.isLastPage() && p.getPage().isLastPanel())) {
-        alert("Last Panel Alert!");
-      }
-      p.next();
-    };
-  
   // in DEBUG mode we run some tests
   if (DEBUG) {
     // TESTING!
@@ -572,5 +536,4 @@ $(function(){
     qt.eq("isLastPage should be `false`", tbm.isLastPage(), false);
     tbm.getNextPage();
     qt.eq("after nextPage isLastPage should be `true`", tbm.isLastPage(), true);
-  }
-});
+  };
