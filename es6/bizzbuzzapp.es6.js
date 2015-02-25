@@ -262,7 +262,6 @@
       this.c = null;
       this.ctx = null;
       
-      // TODO check on this...
       this.width = this.getWidth();
       this.height = this.getHeight();
       
@@ -301,12 +300,12 @@
     
     adjustBackground () {
       if (this.bookManager.getViewLevel() == this.bookManager.PANEL_VIEW) {
-        $("#" + this.projectorId).css("background-position", this.bgMoveX+"px "+this.bgMoveY+"px");
+        document.querySelector("#" + this.projectorId).style.backgroundPosition = `${this.bgMoveX}px ${this.bgMoveY}px`;
       } else {
-        $("#" + this.projectorId).css("background-position", "center");
+        document.querySelector("#" + this.projectorId).style.backgroundPosition = "center";
       }
       
-      $("#" + this.projectorId).css("background-size", (this.getPage().width*this.zoomer)+"px "+(this.getPage().height*this.zoomer)+"px");
+      document.querySelector("#" + this.projectorId).style.backgroundSize = `${(this.getPage().width*this.zoomer)}px ${(this.getPage().height*this.zoomer)}px`;
     }
     
     render (coords) {
@@ -422,10 +421,12 @@
     }
     
     project () {
+      this.width = this.getWidth();
+      this.height = this.getHeight();
       if(this.bookManager.getViewLevel() == this.bookManager.PANEL_VIEW) {
         this.render(this.calculateProjectorCoordinates(this.getPanel().getCoordinates()));
       } else {
-        this.render(this.calculateProjectorCoordinates(new Coordinate("0,0," + this.page.width + "," + this.page.height).getCoordinates()));
+        this.render(this.calculateProjectorCoordinates(new Coordinate(`0,0,${this.page.width},${this.page.height}`).getCoordinates()));
       }
       
       this.adjustBackground();
